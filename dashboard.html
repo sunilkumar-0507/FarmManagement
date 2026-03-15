@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard – Farm Management System</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    @keyframes slideInRight { from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:translateX(0)} }
+
+    .stat-card { animation: fadeInUp .4s ease both; }
+    .stat-card:nth-child(1) { animation-delay:.08s; }
+    .stat-card:nth-child(2) { animation-delay:.16s; }
+    .stat-card:nth-child(3) { animation-delay:.24s; }
+    .card { animation: fadeInUp .4s ease both; }
+    @keyframes fadeInUp { from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)} }
+
+    .date-tag {
+      background: white;
+      border: 1px solid var(--slate-200);
+      border-radius: 8px;
+      padding: 7px 14px;
+      font-size: 12px;
+      color: var(--slate-500);
+      font-weight: 600;
+      box-shadow: var(--shadow-xs);
+    }
+
+    .card-action-link {
+      font-size: 12px;
+      color: var(--green-500);
+      font-weight: 700;
+      background: var(--green-100);
+      padding: 5px 12px;
+      border-radius: 20px;
+      text-decoration: none;
+      transition: var(--transition);
+    }
+    .card-action-link:hover { background: var(--green-400); color: white; }
+
+    .welcome-bar {
+      background: linear-gradient(90deg, var(--green-50), white);
+      border: 1px solid #bbf7d0;
+      border-radius: var(--radius-md);
+      padding: 12px 18px;
+      margin-bottom: 22px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      color: var(--green-700);
+    }
+
+    #expense-chart {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      height: 140px;
+      padding: 0 4px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar injected by JS -->
+  <div id="navbar-placeholder"></div>
+
+  <div class="page-container">
+    <!-- Welcome Bar -->
+    <div class="welcome-bar">
+      🌾 Welcome back, <strong id="welcome-name">Loading…</strong>
+      &nbsp;·&nbsp; Role: <strong id="welcome-role"></strong>
+    </div>
+
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="page-title-group">
+        <h2 class="page-title">📊 Farm Dashboard</h2>
+        <p class="page-subtitle">Overview of your farm operations</p>
+      </div>
+      <div class="date-tag" id="current-date">Loading…</div>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="stats-grid">
+      <div class="stat-card stat-card-income">
+        <div class="stat-icon">📈</div>
+        <div class="stat-label">Total Income</div>
+        <div class="stat-value" id="stat-income">$0.00</div>
+        <div class="stat-sub">
+          <a href="income.html" style="color:rgba(255,255,255,.7);font-size:12px;text-decoration:none">
+            View all income →
+          </a>
+        </div>
+      </div>
+
+      <div class="stat-card stat-card-expense">
+        <div class="stat-icon">📉</div>
+        <div class="stat-label">Total Expenses</div>
+        <div class="stat-value" id="stat-expense">$0.00</div>
+        <div class="stat-sub">
+          <a href="expenses.html" style="color:rgba(255,255,255,.7);font-size:12px;text-decoration:none">
+            View all expenses →
+          </a>
+        </div>
+      </div>
+
+      <div class="stat-card stat-card-profit" id="stat-profit-card">
+        <div class="stat-icon">🏆</div>
+        <div class="stat-label">Net Profit</div>
+        <div class="stat-value" id="stat-profit">$0.00</div>
+        <div class="stat-sub" id="stat-profit-sub" style="color:rgba(255,255,255,.6);font-size:12px">Income – Expenses</div>
+      </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="chart-grid">
+      <!-- Expense Bar Chart -->
+      <div class="card" style="animation-delay:.3s">
+        <div class="card-header">
+          <span class="card-title">📉 Expenses by Category</span>
+          <a href="expenses.html" class="card-action-link">+ Add</a>
+        </div>
+        <div class="card-body">
+          <div id="expense-chart" class="bar-chart">
+            <div style="text-align:center;padding:40px;color:#718096;font-size:13px;width:100%">Loading…</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Income Donut Chart -->
+      <div class="card" style="animation-delay:.4s">
+        <div class="card-header">
+          <span class="card-title">📈 Income by Source</span>
+          <a href="income.html" class="card-action-link">+ Add</a>
+        </div>
+        <div class="card-body">
+          <div class="donut-wrap">
+            <svg id="donut-svg" width="110" height="110" viewBox="0 0 110 110">
+              <text x="55" y="60" text-anchor="middle" font-size="10" fill="#718096">Loading…</text>
+            </svg>
+            <div class="donut-legend" id="donut-legend">
+              <span style="color:#718096;font-size:12px">Loading…</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Transactions -->
+    <div class="txn-grid">
+      <!-- Recent Expenses -->
+      <div class="card" style="animation-delay:.5s">
+        <div class="card-header">
+          <span class="card-title">🕐 Recent Expenses</span>
+          <a href="expenses.html" class="card-action-link">View all</a>
+        </div>
+        <div id="recent-expenses">
+          <div style="padding:20px;text-align:center;color:#718096;font-size:13px">Loading…</div>
+        </div>
+      </div>
+
+      <!-- Recent Incomes -->
+      <div class="card" style="animation-delay:.6s">
+        <div class="card-header">
+          <span class="card-title">🕐 Recent Income</span>
+          <a href="income.html" class="card-action-link">View all</a>
+        </div>
+        <div id="recent-incomes">
+          <div style="padding:20px;text-align:center;color:#718096;font-size:13px">Loading…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>

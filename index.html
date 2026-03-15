@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login – Farm Management System</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    /* Page-specific toast animation */
+    @keyframes slideInRight {
+      from { opacity:0; transform:translateX(30px); }
+      to   { opacity:1; transform:translateX(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="auth-bg">
+    <!-- Decorative blobs -->
+    <div class="auth-pattern"></div>
+    <div class="auth-blob" style="width:300px;height:300px;top:-80px;right:-80px;animation-delay:0s"></div>
+    <div class="auth-blob" style="width:200px;height:200px;bottom:-50px;left:-60px;animation-delay:3s"></div>
+    <div class="auth-blob" style="width:140px;height:140px;top:40%;left:5%;animation-delay:5s"></div>
+
+    <div class="auth-card">
+      <!-- Header -->
+      <div class="auth-header">
+        <span class="brand-emoji">🌿</span>
+        <h1>Farm Management</h1>
+        <p>Sign in to your account to continue</p>
+      </div>
+
+      <!-- Body -->
+      <div class="auth-body">
+        <!-- Error alert -->
+        <div id="login-error" class="alert alert-danger hidden" style="margin-bottom:18px;font-size:13px"></div>
+
+        <form id="login-form" novalidate>
+          <!-- Email -->
+          <div class="form-group">
+            <label class="form-label" for="login-email">Email Address</label>
+            <div class="auth-input-wrap">
+              <span class="auth-input-icon">✉️</span>
+              <input
+                type="email"
+                id="login-email"
+                class="form-control"
+                placeholder="E-Mail"
+                autocomplete="email"                
+              />
+            </div>
+            <span class="error-msg" id="email-error"></span>
+          </div>
+
+          <!-- Password -->
+          <div class="form-group">
+            <label class="form-label" for="login-password">Password</label>
+            <div class="auth-input-wrap" style="display:flex;align-items:center">
+              <span class="auth-input-icon">🔒</span>
+              <input
+                type="password"
+                id="login-password"
+                class="form-control"
+                placeholder="Enter your password"
+                autocomplete="current-password"
+                value="Admin@123"
+                style="padding-right:44px"
+              />
+              <button type="button" id="toggle-password" title="Show/hide password"
+                style="position:absolute;right:14px;background:none;border:none;font-size:16px;cursor:pointer;color:#718096">
+                👁
+              </button>
+            </div>
+            <span class="error-msg" id="pass-error"></span>
+          </div>
+
+          <!-- Remember Me -->
+          <div class="check-row">
+            <input type="checkbox" id="remember-me" checked />
+            <label for="remember-me">Remember me</label>
+          </div>
+
+          <!-- Submit -->
+          <button type="submit" class="btn-auth">
+            <span id="btn-spinner" class="hidden" style="margin-right:6px">⏳</span>
+            <span id="btn-text">Sign In →</span>
+          </button>
+        </form>
+
+        <!-- Footer -->
+        <div class="auth-footer">
+          Don't have an account? <a href="register.html">Register here</a>
+        </div>
+
+        <!-- Demo credentials -->
+        <!-- <div class="demo-hint">
+          <strong>🔑 Demo Credentials</strong><br/>
+          Admin: <strong>admin@farm.com</strong> / <strong>Admin@123</strong><br/>
+          Owner: <strong>owner@farm.com</strong> / <strong>Owner@123</strong><br/>
+          Worker: <strong>worker@farm.com</strong> / <strong>Worker@123</strong><br/>
+          <span style="color:var(--green-600);margin-top:4px;display:block">💰 Currency: Indian Rupees (₹)</span>
+        </div> -->
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script src="js/login.js"></script>
+</body>
+</html>
