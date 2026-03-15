@@ -233,11 +233,16 @@ document.addEventListener('DOMContentLoaded', () => {
           allExpenses.push(newExpense);
           store.set(KEYS.expenses, allExpenses);
           showToast('Expense added successfully');
+        } else if (response.status === 503) {
+          showToast('Demo Mode: Database unavailable. Viewing demo data only.', 'error');
         } else {
           throw new Error('Failed to add');
         }
       }
     } catch (error) {
+      console.error('Error:', error);
+      showToast('Error saving expense record. Possibly in demo mode.', 'error');
+    }
       console.warn('Server request failed, falling back to localStorage:', error);
       // Fallback to localStorage
       if (editingId) {

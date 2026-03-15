@@ -22,14 +22,38 @@ const pool = mysql.createPool({
   queueLimit: 0
 });
 
+// Demo data for when database is offline
+const DEMO_USERS = [
+  { id: 1, email: 'demo@farm.com', password: 'demo123', name: 'Demo User', role: 'owner' },
+  { id: 2, email: 'worker@farm.com', password: 'demo123', name: 'Farm Worker', role: 'worker' },
+  { id: 3, email: 'admin@farm.com', password: 'demo123', name: 'Admin', role: 'admin' }
+];
+
+const DEMO_EXPENSES = [
+  { id: 1, user_id: 1, amount: 1500.00, category: 'Seeds', description: 'Purchased seeds for planting', date: '2026-03-15' },
+  { id: 2, user_id: 1, amount: 2000.00, category: 'Labor', description: 'Worker wages', date: '2026-03-14' },
+  { id: 3, user_id: 1, amount: 800.00, category: 'Transport', description: 'Fuel for tractor', date: '2026-03-13' }
+];
+
+const DEMO_INCOMES = [
+  { id: 1, user_id: 1, amount: 5000.00, source: 'Crop Sales', description: 'Sold wheat', date: '2026-03-15' },
+  { id: 2, user_id: 1, amount: 3000.00, source: 'Dairy', description: 'Milk sales', date: '2026-03-14' },
+  { id: 3, user_id: 1, amount: 2500.00, source: 'Produce', description: 'Vegetable sales', date: '2026-03-12' }
+];
+
+let dbConnected = false;
+
 // Test database connection
 async function testConnection() {
   try {
     const connection = await pool.getConnection();
     console.log('✓ MySQL connected successfully');
+    dbConnected = true;
     connection.release();
   } catch (error) {
     console.error('✗ MySQL connection failed:', error.message);
+    console.log('ℹ Using demo data instead');
+    dbConnected = false;
   }
 }
 
@@ -42,24 +66,40 @@ app.get('/api/health', (req, res) => {
 app.post('/api/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    const connection = await pool.getConnection();
     
-    const [rows] = await connection.query(
-      'SELECT * FROM users WHERE email = ?',
-      [email]
-    );
-    connection.release();
+    // Try database first
+    if (dbConnected) {
+      try {
+        const connection = await pool.getConnection();
+        const [rows] = await connection.query(
+          'SELECT * FROM users WHERE email = ?',
+          [email]
+        );
+        connection.release();
 
-    if (rows.length === 0) {
+        if (rows.length === 0) {
+          return res.status(401).json({ error: 'Invalid credentials' });
+        }
+
+        // TODO: Add password verification with bcrypt
+        const user = rows[0];
+        const appRole = user.role === 'admin' ? 'Admin' : user.role === 'owner' ? 'FarmOwner' : 'FarmWorker';
+        user.role = appRole;
+        return res.json({ success: true, user });
+      } catch (dbError) {
+        console.warn('Database query failed, using demo data');
+        dbConnected = false;
+      }
+    }
+
+    // Fallback to demo data
+    const user = DEMO_USERS.find(u => u.email === email && u.password === password);
+    if (!user) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    // TODO: Add password verification with bcrypt
-    // Map database role to app format
-    const user = rows[0];
     const appRole = user.role === 'admin' ? 'Admin' : user.role === 'owner' ? 'FarmOwner' : 'FarmWorker';
-    user.role = appRole;
-    res.json({ success: true, user });
+    return res.json({ success: true, user: { ...user, role: appRole } });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Server error' });
@@ -70,28 +110,40 @@ app.post('/api/login', async (req, res) => {
 app.post('/api/register', async (req, res) => {
   try {
     const { email, password, name, role } = req.body;
-    const connection = await pool.getConnection();
     
-    // Check if user exists
-    const [existing] = await connection.query(
-      'SELECT id FROM users WHERE email = ?',
-      [email]
-    );
+    // Try database first
+    if (dbConnected) {
+      try {
+        const connection = await pool.getConnection();
+        
+        // Check if user exists
+        const [existing] = await connection.query(
+          'SELECT id FROM users WHERE email = ?',
+          [email]
+        );
 
-    if (existing.length > 0) {
-      connection.release();
-      return res.status(400).json({ error: 'Email already exists' });
+        if (existing.length > 0) {
+          connection.release();
+          return res.status(400).json({ error: 'Email already exists' });
+        }
+
+        // TODO: Hash password with bcrypt before storing
+        const userRole = role === 'Admin' ? 'admin' : role === 'FarmOwner' ? 'owner' : 'worker';
+        const [result] = await connection.query(
+          'INSERT INTO users (email, password, name, role) VALUES (?, ?, ?, ?)',
+          [email, password, name, userRole]
+        );
+        connection.release();
+
+        return res.json({ success: true, userId: result.insertId });
+      } catch (dbError) {
+        console.warn('Database query failed, using demo mode');
+        dbConnected = false;
+      }
     }
 
-    // TODO: Hash password with bcrypt before storing
-    const userRole = role === 'Admin' ? 'admin' : role === 'FarmOwner' ? 'owner' : 'worker';
-    const [result] = await connection.query(
-      'INSERT INTO users (email, password, name, role) VALUES (?, ?, ?, ?)',
-      [email, password, name, userRole]
-    );
-    connection.release();
-
-    res.json({ success: true, userId: result.insertId });
+    // Demo mode: reject registration (show message)
+    return res.status(400).json({ error: 'Registration unavailable. Use demo@farm.com / demo123 to test.' });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Server error' });
@@ -122,21 +174,34 @@ app.get('/api/dashboard', async (req, res) => {
 app.get('/api/expenses', async (req, res) => {
   try {
     const { userId } = req.query;
-    const connection = await pool.getConnection();
     
-    let query = 'SELECT id, user_id, amount, category, description, date FROM expenses';
-    let params = [];
-    
-    if (userId) {
-      query += ' WHERE user_id = ?';
-      params.push(userId);
-    }
-    
-    query += ' ORDER BY date DESC';
-    
-    const [expenses] = await connection.query(query, params);
-    connection.release();
+    // Try database first
+    if (dbConnected) {
+      try {
+        const connection = await pool.getConnection();
+        
+        let query = 'SELECT id, user_id, amount, category, description, date FROM expenses';
+        let params = [];
+        
+        if (userId) {
+          query += ' WHERE user_id = ?';
+          params.push(userId);
+        }
+        
+        query += ' ORDER BY date DESC';
+        
+        const [expenses] = await connection.query(query, params);
+        connection.release();
 
+        return res.json(expenses);
+      } catch (dbError) {
+        console.warn('Database query failed, using demo data');
+        dbConnected = false;
+      }
+    }
+
+    // Demo mode: return demo expenses
+    const expenses = userId ? DEMO_EXPENSES.filter(e => e.user_id == userId) : DEMO_EXPENSES;
     res.json(expenses);
   } catch (error) {
     console.error(error);
@@ -151,6 +216,11 @@ app.post('/api/expenses', async (req, res) => {
     
     if (!userId || !amount || !category || !date) {
       return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    // Database only (demo mode cannot save new records)
+    if (!dbConnected) {
+      return res.status(503).json({ error: 'Database unavailable. Demo mode: viewing only.' });
     }
 
     const connection = await pool.getConnection();
@@ -212,21 +282,34 @@ app.delete('/api/expenses/:id', async (req, res) => {
 app.get('/api/income', async (req, res) => {
   try {
     const { userId } = req.query;
-    const connection = await pool.getConnection();
     
-    let query = 'SELECT id, user_id, amount, source, description, date FROM income';
-    let params = [];
-    
-    if (userId) {
-      query += ' WHERE user_id = ?';
-      params.push(userId);
-    }
-    
-    query += ' ORDER BY date DESC';
-    
-    const [incomes] = await connection.query(query, params);
-    connection.release();
+    // Try database first
+    if (dbConnected) {
+      try {
+        const connection = await pool.getConnection();
+        
+        let query = 'SELECT id, user_id, amount, source, description, date FROM income';
+        let params = [];
+        
+        if (userId) {
+          query += ' WHERE user_id = ?';
+          params.push(userId);
+        }
+        
+        query += ' ORDER BY date DESC';
+        
+        const [incomes] = await connection.query(query, params);
+        connection.release();
 
+        return res.json(incomes);
+      } catch (dbError) {
+        console.warn('Database query failed, using demo data');
+        dbConnected = false;
+      }
+    }
+
+    // Demo mode: return demo incomes
+    const incomes = userId ? DEMO_INCOMES.filter(i => i.user_id == userId) : DEMO_INCOMES;
     res.json(incomes);
   } catch (error) {
     console.error(error);
@@ -241,6 +324,11 @@ app.post('/api/income', async (req, res) => {
     
     if (!userId || !amount || !source || !date) {
       return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    // Database only (demo mode cannot save new records)
+    if (!dbConnected) {
+      return res.status(503).json({ error: 'Database unavailable. Demo mode: viewing only.' });
     }
 
     const connection = await pool.getConnection();

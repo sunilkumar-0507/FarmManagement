@@ -38,16 +38,18 @@ CREATE TABLE IF NOT EXISTS expenses (
 
 -- Insert demo users
 INSERT INTO users (email, password, name, role) VALUES
-('admin@farm.com', 'Admin@123', 'Admin User', 'admin'),
-('owner@farm.com', 'Owner@123', 'Farm Owner', 'owner'),
-('worker@farm.com', 'Worker@123', 'Farm Worker', 'worker');
+('demo@farm.com', 'demo123', 'Demo User', 'owner'),
+('worker@farm.com', 'demo123', 'Farm Worker', 'worker'),
+('admin@farm.com', 'demo123', 'Admin', 'admin');
 
 -- Insert demo income
 INSERT INTO income (user_id, amount, source, description, date) VALUES
-(2, 5000.00, 'Crop Sales', 'Sold wheat', CURDATE()),
-(2, 3000.00, 'Dairy', 'Milk sales', CURDATE() - INTERVAL 1 DAY);
+(1, 5000.00, 'Crop Sales', 'Sold wheat', CURDATE()),
+(1, 3000.00, 'Dairy', 'Milk sales', CURDATE() - INTERVAL 1 DAY),
+(1, 2500.00, 'Produce', 'Vegetable sales', CURDATE() - INTERVAL 2 DAY);
 
 -- Insert demo expenses
 INSERT INTO expenses (user_id, amount, category, description, date) VALUES
-(2, 1500.00, 'Seeds', 'Purchased seeds for planting', CURDATE()),
-(2, 2000.00, 'Labor', 'Worker wages', CURDATE() - INTERVAL 1 DAY);
+(1, 1500.00, 'Seeds', 'Purchased seeds for planting', CURDATE()),
+(1, 2000.00, 'Labor', 'Worker wages', CURDATE() - INTERVAL 1 DAY),
+(1, 800.00, 'Transport', 'Fuel for tractor', CURDATE() - INTERVAL 2 DAY);

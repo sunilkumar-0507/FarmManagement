@@ -189,6 +189,10 @@ document.addEventListener('DOMContentLoaded', () => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userId: user.id, source, description, amount, date })
         });
+        if (response.status === 503) {
+          showToast('Demo Mode: Database unavailable. Viewing demo data only.', 'error');
+          return;
+        }
         if (!response.ok) throw new Error('Failed to add');
         showToast('Income added successfully');
       }
@@ -196,7 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
       fetchIncomes(); // Refresh data from API
     } catch (error) {
       console.error('Error:', error);
-      showToast('Error saving income record', 'error');
+      showToast('Error saving income record. Possibly in demo mode.', 'error');
     }
   });
 
