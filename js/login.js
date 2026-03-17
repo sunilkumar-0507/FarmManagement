@@ -44,51 +44,21 @@ document.addEventListener('DOMContentLoaded', () => {
     btnText.textContent = 'Signing in…';
     spinner.classList.remove('hidden');
 
-    try {
-      // Check for demo user first
-      if (email === DEMO_USER.email && password === DEMO_USER.password) {
-        const user = {
-          id: DEMO_USER.id,
-          fullName: DEMO_USER.fullName,
-          email: DEMO_USER.email,
-          role: DEMO_USER.role
-        };
-        auth.setSession(user);
-        window.location.href = 'dashboard.html';
-        return;
-      }
-
-      const response = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        // Map database fields to app format
-        const user = {
-          id: data.user.id,
-          fullName: data.user.name || 'User',
-          email: data.user.email,
-          role: data.user.role
-        };
-        auth.setSession(user);
-        window.location.href = 'dashboard.html';
-      } else {
-        btnText.textContent = 'Sign In';
-        spinner.classList.add('hidden');
-        errBox.classList.remove('hidden');
-        errBox.textContent = '❌ Invalid email or password. Please try again.';
-        passInput.value = '';
-        passInput.focus();
-      }
-    } catch (error) {
-      console.error('Login error:', error);
+    // Check hardcoded demo user (no database connection)
+    if (email === DEMO_USER.email && password === DEMO_USER.password) {
+      const user = {
+        id: DEMO_USER.id,
+        fullName: DEMO_USER.fullName,
+        email: DEMO_USER.email,
+        role: DEMO_USER.role
+      };
+      auth.setSession(user);
+      window.location.href = 'dashboard.html';
+    } else {
       btnText.textContent = 'Sign In';
       spinner.classList.add('hidden');
       errBox.classList.remove('hidden');
-      errBox.textContent = '❌ Connection error. Please try again.';
+      errBox.textContent = '❌ Invalid credentials. Use demo@farm.com / Demo@123';
       passInput.value = '';
       passInput.focus();
     }
