@@ -11,6 +11,15 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
+  // Demo user for testing (hardcoded)
+  const DEMO_USER = {
+    email: 'demo@farm.com',
+    password: 'Demo@123',
+    id: 999,
+    fullName: 'Demo User',
+    role: 'owner'
+  };
+
   const form       = document.getElementById('login-form');
   const emailInput = document.getElementById('login-email');
   const passInput  = document.getElementById('login-password');
@@ -36,6 +45,19 @@ document.addEventListener('DOMContentLoaded', () => {
     spinner.classList.remove('hidden');
 
     try {
+      // Check for demo user first
+      if (email === DEMO_USER.email && password === DEMO_USER.password) {
+        const user = {
+          id: DEMO_USER.id,
+          fullName: DEMO_USER.fullName,
+          email: DEMO_USER.email,
+          role: DEMO_USER.role
+        };
+        auth.setSession(user);
+        window.location.href = 'dashboard.html';
+        return;
+      }
+
       const response = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
